@@ -85,6 +85,10 @@
             touch-action: manipulation;
         }
         
+        .control-btn:active {
+            background-color: rgba(255, 0, 170, 0.7);
+        }
+        
         #score {
             position: absolute;
             top: 20px;
@@ -168,7 +172,7 @@
     <div id="startScreen">
         <h1>Para Karla</h1>
         <p>Esquiva las frases de amor que vienen hacia ti</p>
-        <p>Cada vez irán más rápido - ¡sobrevive el mayor tiempo posible!</p>
+        <p>Modo fácil - las frases se mueven más despacio</p>
         <p>Usa los botones para moverte arriba y abajo</p>
         <button id="startButton">Comenzar</button>
     </div>
@@ -244,8 +248,8 @@
         
         let enemies = [];
         let lastEnemyTime = 0;
-        let enemyInterval = 2000;
-        let baseSpeed = 3;
+        let enemyInterval = 2500; // Slower spawn rate
+        let baseSpeed = 2; // Slower base speed
         
         // Romantic phrases in Spanish
         const frasesRomanticas = [
@@ -286,42 +290,73 @@
             gameLoop();
         }
         
-        // Player controls
-        const keys = {
-            ArrowUp: false,
-            ArrowDown: false
+        // Improved touch controls with event listeners for all relevant events
+        function setupControls() {
+            // Keyboard controls
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            
+            // Touch controls
+            upBtn.addEventListener('touchstart', handleUpStart, {passive: false});
+            upBtn.addEventListener('touchend', handleUpEnd, {passive: false});
+            upBtn.addEventListener('touchcancel', handleUpEnd, {passive: false});
+            
+            downBtn.addEventListener('touchstart', handleDownStart, {passive: false});
+            downBtn.addEventListener('touchend', handleDownEnd, {passive: false});
+            downBtn.addEventListener('touchcancel', handleDownEnd, {passive: false});
+            
+            // Mouse controls for testing
+            upBtn.addEventListener('mousedown', handleUpStart);
+            upBtn.addEventListener('mouseup', handleUpEnd);
+            upBtn.addEventListener('mouseleave', handleUpEnd);
+            
+            downBtn.addEventListener('mousedown', handleDownStart);
+            downBtn.addEventListener('mouseup', handleDownEnd);
+            downBtn.addEventListener('mouseleave', handleDownEnd);
+        }
+        
+        // Control state
+        const controls = {
+            up: false,
+            down: false
         };
         
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'ArrowUp') keys.ArrowUp = true;
-            if (e.code === 'ArrowDown') keys.ArrowDown = true;
-        });
+        function handleKeyDown(e) {
+            if (e.code === 'ArrowUp') controls.up = true;
+            if (e.code === 'ArrowDown') controls.down = true;
+        }
         
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'ArrowUp') keys.ArrowUp = false;
-            if (e.code === 'ArrowDown') keys.ArrowDown = false;
-        });
+        function handleKeyUp(e) {
+            if (e.code === 'ArrowUp') controls.up = false;
+            if (e.code === 'ArrowDown') controls.down = false;
+        }
         
-        // Touch controls
-        upBtn.addEventListener('touchstart', (e) => {
+        function handleUpStart(e) {
             e.preventDefault();
-            keys.ArrowUp = true;
-        });
+            controls.up = true;
+            upBtn.style.backgroundColor = 'rgba(255, 0, 170, 0.7)';
+        }
         
-        upBtn.addEventListener('touchend', (e) => {
+        function handleUpEnd(e) {
             e.preventDefault();
-            keys.ArrowUp = false;
-        });
+            controls.up = false;
+            upBtn.style.backgroundColor = 'rgba(255, 105, 180, 0.5)';
+        }
         
-        downBtn.addEventListener('touchstart', (e) => {
+        function handleDownStart(e) {
             e.preventDefault();
-            keys.ArrowDown = true;
-        });
+            controls.down = true;
+            downBtn.style.backgroundColor = 'rgba(255, 0, 170, 0.7)';
+        }
         
-        downBtn.addEventListener('touchend', (e) => {
+        function handleDownEnd(e) {
             e.preventDefault();
-            keys.ArrowDown = false;
-        });
+            controls.down = false;
+            downBtn.style.backgroundColor = 'rgba(255, 105, 180, 0.5)';
+        }
+        
+        // Initialize controls
+        setupControls();
         
         // Game loop
         function gameLoop() {
@@ -336,14 +371,15 @@
         function update() {
             // Update time
             currentTime = Math.floor((Date.now() - gameStartTime) / 1000);
-            speedMultiplier = 1 + (currentTime / 30); // Increases speed every 30 seconds
+            // Slower difficulty progression
+            speedMultiplier = 1 + (currentTime / 60); // Increases speed every 60 seconds instead of 30
             updateScore();
             
             // Move player
-            if (keys.ArrowUp && player.y > 0) {
+            if (controls.up && player.y > 0) {
                 player.y -= player.speed;
             }
-            if (keys.ArrowDown && player.y < canvas.height - player.height) {
+            if (controls.down && player.y < canvas.height - player.height) {
                 player.y += player.speed;
             }
             
@@ -384,7 +420,7 @@
                 y: Math.random() * (canvas.height - 50),
                 width: textWidth + 20,
                 height: fontSize + 10,
-                speed: baseSpeed + Math.random() * 2,
+                speed: baseSpeed + Math.random(), // Reduced random speed variation
                 color: `hsl(${Math.random() * 60 + 300}, 100%, 70%)`,
                 text: frase,
                 fontSize: fontSize
