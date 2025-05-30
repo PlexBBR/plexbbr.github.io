@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Amor Estelar para Karla</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000 url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1000') center/cover;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #ff69b4;
+            text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+            z-index: 100;
+            pointer-events: none;
+            text-align: center;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5em;
+            color: white;
+            z-index: 100;
+            text-shadow: 0 0 5px #000;
+        }
+        #hearts {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            color: red;
+            z-index: 100;
+        }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            z-index: 100;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="message">Viajando por el universo<br>contigo, Karla ❤️</div>
+    <div id="score">Puntos: 0</div>
+    <div id="hearts">❤️❤️❤️</div>
+    <div id="instructions">Usa ↑ ↓ ← → para moverte<br>Espacio para disparar amor</div>
+
+    <script>
+        // ======== CONFIGURACIÓN ========
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Frases románticas en español (enemigos)
+        const frasesAmor = [
+            "Eres mi sol",
+            "Mi corazón es tuyo",
+            "Te amo más que a las estrellas",
+            "Eres mi sueño hecho realidad",
+            "Contigo hasta el infinito",
+            "Mi amor por ti es eterno",
+            "Eres la dueña de mi corazón",
+            "Nada me hace más feliz que tú",
+            "Eres mi universo",
+            "Mi vida sin ti no tiene sentido",
+            "Eres mi destino",
+            "Quiero pasar la eternidad contigo",
+            "Eres mi razón de ser",
+            "Nunca dejaré de amarte",
+            "Eres mi todo"
+        ];
+
+        // ======== JUEGO ========
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            width: 60,
+            height: 60,
+            speed: 8,
+            lives: 3,
+            color: '#ff69b4'
+        };
+
+        const bullets = [];
+        const enemies = [];
+        const stars = [];
+        const hearts = [];
+        let score = 0;
+        let gameOver = false;
+        let gameStarted = false;
+
+        // Crear estrellas de fondo
+        for (let i = 0; i < 200; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 3,
+                speed: 0.2 + Math.random() * 2
+            });
+        }
+
+        // Crear corazones flotantes
+        for (let i = 0; i < 15; i++) {
+            hearts.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: 20 + Math.random() * 30,
+                speed: 0.5 + Math.random() * 1.5,
+                opacity: 0.3 + Math.random() * 0.7
+            });
+        }
+
+        function createEnemy() {
+            const side = Math.floor(Math.random() * 4); // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
+            let x, y;
+            
+            switch(side) {
+                case 0: // arriba
+                    x = Math.random() * canvas.width;
+                    y = -50;
+                    break;
+                case 1: // derecha
+                    x = canvas.width + 50;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // abajo
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + 50;
+                    break;
+                case 3: // izquierda
+                    x = -50;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+            
+            enemies.push({
+                x: x,
+                y: y,
+                text: frasesAmor[Math.floor(Math.random() * frasesAmor.length)],
+                speed: 1 + Math.random() * 3,
+                color: `hsl(${Math.random() * 360}, 100%, 70%)`,
+                size: 18 + Math.random() * 10,
+                health: 1
+            });
+        }
+
+        function drawPlayer() {
+            // Nave espacial (corazón)
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            
+            // Cuerpo de la nave
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.moveTo(0, -player.height/2);
+            ctx.lineTo(player.width/2, player.height/2);
+            ctx.lineTo(-player.width/2, player.height/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Detalles
+            ctx.fillStyle = '#ff1493';
+            ctx.beginPath();
+            ctx.arc(0, 0, player.width/4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawBullets() {
+            ctx.fillStyle = '#ffffff';
+            bullets.forEach(bullet => {
+                // Disparos con forma de corazón pequeño
+                ctx.save();
+                ctx.translate(bullet.x, bullet.y);
+                ctx.rotate(Math.PI);
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.moveTo(0, -5);
+                ctx.lineTo(5, 5);
+                ctx.lineTo(-5, 5);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                ctx.fillStyle = enemy.color;
+                ctx.font = `${enemy.size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.fillText(enemy.text, enemy.x, enemy.y);
+                ctx.textAlign = 'left';
+            });
+        }
+
+        function drawStars() {
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.fillRect(star.x, star.y, star.size, star.size);
+            });
+        }
+
+        function drawHearts() {
+            hearts.forEach(heart => {
+                ctx.save();
+                ctx.globalAlpha = heart.opacity;
+                ctx.fillStyle = `rgba(255, ${Math.floor(Math.random() * 105) + 50}, ${Math.floor(Math.random() * 105) + 50}, ${heart.opacity})`;
+                ctx.font = `${heart.size}px Arial`;
+                ctx.fillText('❤️', heart.x, heart.y);
+                ctx.restore();
+            });
+        }
+
+        function updateGame() {
+            if (gameOver || !gameStarted) return;
+            
+            // Mover estrellas (efecto parallax)
+            stars.forEach(star => {
+                star.y += star.speed;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+            
+            // Mover corazones flotantes
+            hearts.forEach(heart => {
+                heart.y -= heart.speed;
+                if (heart.y < -20) {
+                    heart.y = canvas.height + 20;
+                    heart.x = Math.random() * canvas.width;
+                }
+            });
+            
+            // Mover balas
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const angle = Math.atan2(bullets[i].targetY - bullets[i].y, bullets[i].targetX - bullets[i].x);
+                bullets[i].x += Math.cos(angle) * bullets[i].speed;
+                bullets[i].y += Math.sin(angle) * bullets[i].speed;
+                
+                // Eliminar balas fuera de pantalla
+                if (bullets[i].x < 0 || bullets[i].x > canvas.width || 
+                    bullets[i].y < 0 || bullets[i].y > canvas.height) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // Detectar colisiones bala-enemigo
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const dx = bullets[i].x - enemies[j].x;
+                    const dy = bullets[i].y - enemies[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 50) { // Radio de colisión aproximado
+                        enemies[j].health--;
+                        bullets.splice(i, 1);
+                        
+                        if (enemies[j].health <= 0) {
+                            // Crear efecto de explosión de corazones
+                            for (let k = 0; k < 5; k++) {
+                                hearts.push({
+                                    x: enemies[j].x,
+                                    y: enemies[j].y,
+                                    size: 15 + Math.random() * 20,
+                                    speed: 1 + Math.random() * 3,
+                                    opacity: 0.7 + Math.random() * 0.3
+                                });
+                            }
+                            
+                            enemies.splice(j, 1);
+                            score += 10;
+                            document.getElementById('score').textContent = `Puntos: ${score}`;
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            // Mover enemigos hacia el jugador
+            enemies.forEach(enemy => {
+                const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                enemy.x += Math.cos(angle) * enemy.speed;
+                enemy.y += Math.sin(angle) * enemy.speed;
+                
+                // Detectar colisión jugador-enemigo
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 40) {
+                    player.lives--;
+                    document.getElementById('hearts').textContent = '❤️'.repeat(player.lives);
+                    enemies.splice(enemies.indexOf(enemy), 1);
+                    
+                    if (player.lives <= 0) {
+                        gameOver = true;
+                        document.getElementById('message').textContent = "Game Over\nTu amor me venció\nKarla";
+                        document.getElementById('message').style.color = "red";
+                    }
+                }
+            });
+            
+            // Generar nuevos enemigos
+            if (Math.random() < 0.02) {
+                createEnemy();
+            }
+        }
+
+        function gameLoop() {
+            // Limpiar canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar elementos
+            drawStars();
+            drawHearts();
+            
+            if (gameStarted) {
+                drawPlayer();
+                drawBullets();
+                drawEnemies();
+                updateGame();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ======== CONTROLES ========
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            // Iniciar juego al presionar cualquier tecla
+            if (!gameStarted && !gameOver) {
+                gameStarted = true;
+                document.getElementById('message').style.display = 'none';
+            }
+            
+            // Disparar
+            if (e.key === ' ' && gameStarted && !gameOver) {
+                bullets.push({
+                    x: player.x,
+                    y: player.y,
+                    targetX: player.x + (Math.random() * 100 - 50),
+                    targetY: player.y - 100,
+                    speed: 5
+                });
+            }
+            
+            // Reiniciar juego
+            if (e.key === 'r' && gameOver) {
+                resetGame();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        function handlePlayerInput() {
+            if (keys['ArrowUp'] && player.y > player.height/2) {
+                player.y -= player.speed;
+            }
+            if (keys['ArrowDown'] && player.y < canvas.height - player.height/2) {
+                player.y += player.speed;
+            }
+            if (keys['ArrowLeft'] && player.x > player.width/2) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] && player.x < canvas.width - player.width/2) {
+                player.x += player.speed;
+            }
+        }
+
+        function resetGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.lives = 3;
+            bullets.length = 0;
+            enemies.length = 0;
+            score = 0;
+            gameOver = false;
+            gameStarted = false;
+            
+            document.getElementById('score').textContent = `Puntos: ${score}`;
+            document.getElementById('hearts').textContent = '❤️❤️❤️';
+            document.getElementById('message').style.display = 'block';
+            document.getElementById('message').textContent = "Viajando por el universo\ncontigo, Karla ❤️";
+            document.getElementById('message').style.color = "#ff69b4";
+        }
+
+        // Actualizar posición del jugador
+        function updatePlayer() {
+            if (gameStarted && !gameOver) {
+                handlePlayerInput();
+            }
+        }
+
+        // Manejar redimensionamiento
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            if (!gameStarted) {
+                player.x = canvas.width / 2;
+                player.y = canvas.height / 2;
+            }
+        });
+
+        // Iniciar bucles del juego
+        setInterval(updatePlayer, 16);
+        gameLoop();
+    </script>
+</body>
+</html>
