@@ -1,439 +1,476 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Amor Estelar para Karla</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Para Karla - Esquiva el Amor</title>
     <style>
         body {
             margin: 0;
+            padding: 0;
             overflow: hidden;
-            background: #000 url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1000') center/cover;
-            color: white;
-            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            touch-action: manipulation;
+            position: fixed;
+            width: 100%;
+            height: 100%;
         }
-        canvas {
-            display: block;
+        
+        #matrix {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            color: #ff00aa;
+            font-size: 24px;
+            opacity: 0.7;
         }
-        #message {
+        
+        #gameContainer {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3em;
-            color: #ff69b4;
-            text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
-            z-index: 100;
-            pointer-events: none;
-            text-align: center;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
         }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #loveMessage {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff69b4;
+            font-size: 24px;
+            text-shadow: 0 0 10px #ff00aa;
+            z-index: 3;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 3;
+        }
+        
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            margin: 0 30px;
+            background-color: rgba(255, 105, 180, 0.5);
+            border: 2px solid #ff69b4;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        
         #score {
             position: absolute;
             top: 20px;
-            left: 20px;
-            font-size: 1.5em;
-            color: white;
-            z-index: 100;
-            text-shadow: 0 0 5px #000;
-        }
-        #hearts {
-            position: absolute;
-            top: 20px;
             right: 20px;
-            font-size: 1.5em;
-            color: red;
-            z-index: 100;
-        }
-        #instructions {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
             color: white;
-            z-index: 100;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 5px;
+            font-size: 20px;
+            z-index: 3;
+        }
+        
+        #time {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            color: white;
+            font-size: 20px;
+            z-index: 3;
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 4;
+            color: #ff69b4;
             text-align: center;
+            padding: 20px;
+        }
+        
+        #startButton {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background-color: #ff00aa;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 600px) {
+            #loveMessage {
+                font-size: 18px;
+                top: 10px;
+            }
+            
+            .control-btn {
+                width: 70px;
+                height: 70px;
+                margin: 0 15px;
+            }
+            
+            #startScreen {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="message">Viajando por el universo<br>contigo, Karla ❤️</div>
-    <div id="score">Puntos: 0</div>
-    <div id="hearts">❤️❤️❤️</div>
-    <div id="instructions">Usa ↑ ↓ ← → para moverte<br>Espacio para disparar amor</div>
+    <div id="matrix"></div>
+    
+    <div id="loveMessage">I love you Karla ♥</div>
+    <div id="score">Tiempo: 0s</div>
+    <div id="time">Velocidad: 1x</div>
+    
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <div id="controls">
+        <div class="control-btn" id="upBtn">↑</div>
+        <div class="control-btn" id="downBtn">↓</div>
+    </div>
+    
+    <div id="startScreen">
+        <h1>Para Karla</h1>
+        <p>Esquiva las frases de amor que vienen hacia ti</p>
+        <p>Cada vez irán más rápido - ¡sobrevive el mayor tiempo posible!</p>
+        <p>Usa los botones para moverte arriba y abajo</p>
+        <button id="startButton">Comenzar</button>
+    </div>
 
     <script>
-        // ======== CONFIGURACIÓN ========
+        // Falling hearts matrix effect
+        const matrix = document.getElementById('matrix');
+        const hearts = ['♥', '❤', '💖', '💗', '💓', '💘'];
+        const cols = Math.floor(window.innerWidth / 24);
+        const rows = Math.floor(window.innerHeight / 24);
+        const drops = [];
+        
+        // Initialize drops
+        for (let i = 0; i < cols; i++) {
+            drops[i] = Math.floor(Math.random() * rows * -1);
+        }
+        
+        function drawHearts() {
+            let output = '';
+            for (let i = 0; i < drops.length; i++) {
+                const heart = hearts[Math.floor(Math.random() * hearts.length)];
+                const dropPos = drops[i];
+                
+                if (dropPos >= 0 && dropPos < rows) {
+                    output += `<span style="position: absolute; left:${i * 24}px; top:${dropPos * 24}px">${heart}</span>`;
+                }
+                
+                // Reset drop if it's at the bottom
+                if (dropPos > rows + Math.random() * 10) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+            
+            matrix.innerHTML = output;
+        }
+        
+        setInterval(drawHearts, 100);
+        
+        // Game code
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // Frases románticas en español (enemigos)
-        const frasesAmor = [
-            "Eres mi sol",
-            "Mi corazón es tuyo",
-            "Te amo más que a las estrellas",
-            "Eres mi sueño hecho realidad",
-            "Contigo hasta el infinito",
-            "Mi amor por ti es eterno",
-            "Eres la dueña de mi corazón",
-            "Nada me hace más feliz que tú",
-            "Eres mi universo",
-            "Mi vida sin ti no tiene sentido",
-            "Eres mi destino",
-            "Quiero pasar la eternidad contigo",
-            "Eres mi razón de ser",
-            "Nunca dejaré de amarte",
-            "Eres mi todo"
-        ];
-
-        // ======== JUEGO ========
-        const player = {
-            x: canvas.width / 2,
+        const startScreen = document.getElementById('startScreen');
+        const startButton = document.getElementById('startButton');
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const upBtn = document.getElementById('upBtn');
+        const downBtn = document.getElementById('downBtn');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Game variables
+        let gameRunning = false;
+        let gameStartTime = 0;
+        let currentTime = 0;
+        let speedMultiplier = 1;
+        let player = {
+            x: 50,
             y: canvas.height / 2,
-            width: 60,
-            height: 60,
+            width: 40,
+            height: 40,
             speed: 8,
-            lives: 3,
             color: '#ff69b4'
         };
-
-        const bullets = [];
-        const enemies = [];
-        const stars = [];
-        const hearts = [];
-        let score = 0;
-        let gameOver = false;
-        let gameStarted = false;
-
-        // Crear estrellas de fondo
-        for (let i = 0; i < 200; i++) {
-            stars.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: Math.random() * 3,
-                speed: 0.2 + Math.random() * 2
-            });
+        
+        let enemies = [];
+        let lastEnemyTime = 0;
+        let enemyInterval = 2000;
+        let baseSpeed = 3;
+        
+        // Romantic phrases in Spanish
+        const frasesRomanticas = [
+            "Eres mi sol",
+            "Te amo",
+            "Mi corazón es tuyo",
+            "Eres mi sueño",
+            "Para siempre juntos",
+            "Mi amor eterno",
+            "Eres mi vida",
+            "Mi media naranja",
+            "Eres perfecta",
+            "Mi razón de ser",
+            "Bombón de chocolate",
+            "Cariño de mi alma",
+            "Amor a primera vista",
+            "Eres mi todo",
+            "Mi princesa hermosa",
+            "Dueña de mi corazón",
+            "Mi luz en la oscuridad",
+            "Mi pensamiento favorito",
+            "Mi felicidad completa",
+            "El amor de mi vida"
+        ];
+        
+        // Start game
+        startButton.addEventListener('click', startGame);
+        
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameRunning = true;
+            gameStartTime = Date.now();
+            currentTime = 0;
+            speedMultiplier = 1;
+            player.y = canvas.height / 2;
+            enemies = [];
+            updateScore();
+            gameLoop();
         }
-
-        // Crear corazones flotantes
-        for (let i = 0; i < 15; i++) {
-            hearts.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                size: 20 + Math.random() * 30,
-                speed: 0.5 + Math.random() * 1.5,
-                opacity: 0.3 + Math.random() * 0.7
-            });
-        }
-
-        function createEnemy() {
-            const side = Math.floor(Math.random() * 4); // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
-            let x, y;
-            
-            switch(side) {
-                case 0: // arriba
-                    x = Math.random() * canvas.width;
-                    y = -50;
-                    break;
-                case 1: // derecha
-                    x = canvas.width + 50;
-                    y = Math.random() * canvas.height;
-                    break;
-                case 2: // abajo
-                    x = Math.random() * canvas.width;
-                    y = canvas.height + 50;
-                    break;
-                case 3: // izquierda
-                    x = -50;
-                    y = Math.random() * canvas.height;
-                    break;
-            }
-            
-            enemies.push({
-                x: x,
-                y: y,
-                text: frasesAmor[Math.floor(Math.random() * frasesAmor.length)],
-                speed: 1 + Math.random() * 3,
-                color: `hsl(${Math.random() * 360}, 100%, 70%)`,
-                size: 18 + Math.random() * 10,
-                health: 1
-            });
-        }
-
-        function drawPlayer() {
-            // Nave espacial (corazón)
-            ctx.save();
-            ctx.translate(player.x, player.y);
-            
-            // Cuerpo de la nave
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.moveTo(0, -player.height/2);
-            ctx.lineTo(player.width/2, player.height/2);
-            ctx.lineTo(-player.width/2, player.height/2);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Detalles
-            ctx.fillStyle = '#ff1493';
-            ctx.beginPath();
-            ctx.arc(0, 0, player.width/4, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.restore();
-        }
-
-        function drawBullets() {
-            ctx.fillStyle = '#ffffff';
-            bullets.forEach(bullet => {
-                // Disparos con forma de corazón pequeño
-                ctx.save();
-                ctx.translate(bullet.x, bullet.y);
-                ctx.rotate(Math.PI);
-                ctx.fillStyle = '#ff0000';
-                ctx.beginPath();
-                ctx.moveTo(0, -5);
-                ctx.lineTo(5, 5);
-                ctx.lineTo(-5, 5);
-                ctx.closePath();
-                ctx.fill();
-                ctx.restore();
-            });
-        }
-
-        function drawEnemies() {
-            enemies.forEach(enemy => {
-                ctx.fillStyle = enemy.color;
-                ctx.font = `${enemy.size}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.fillText(enemy.text, enemy.x, enemy.y);
-                ctx.textAlign = 'left';
-            });
-        }
-
-        function drawStars() {
-            ctx.fillStyle = 'white';
-            stars.forEach(star => {
-                ctx.fillRect(star.x, star.y, star.size, star.size);
-            });
-        }
-
-        function drawHearts() {
-            hearts.forEach(heart => {
-                ctx.save();
-                ctx.globalAlpha = heart.opacity;
-                ctx.fillStyle = `rgba(255, ${Math.floor(Math.random() * 105) + 50}, ${Math.floor(Math.random() * 105) + 50}, ${heart.opacity})`;
-                ctx.font = `${heart.size}px Arial`;
-                ctx.fillText('❤️', heart.x, heart.y);
-                ctx.restore();
-            });
-        }
-
-        function updateGame() {
-            if (gameOver || !gameStarted) return;
-            
-            // Mover estrellas (efecto parallax)
-            stars.forEach(star => {
-                star.y += star.speed;
-                if (star.y > canvas.height) {
-                    star.y = 0;
-                    star.x = Math.random() * canvas.width;
-                }
-            });
-            
-            // Mover corazones flotantes
-            hearts.forEach(heart => {
-                heart.y -= heart.speed;
-                if (heart.y < -20) {
-                    heart.y = canvas.height + 20;
-                    heart.x = Math.random() * canvas.width;
-                }
-            });
-            
-            // Mover balas
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const angle = Math.atan2(bullets[i].targetY - bullets[i].y, bullets[i].targetX - bullets[i].x);
-                bullets[i].x += Math.cos(angle) * bullets[i].speed;
-                bullets[i].y += Math.sin(angle) * bullets[i].speed;
-                
-                // Eliminar balas fuera de pantalla
-                if (bullets[i].x < 0 || bullets[i].x > canvas.width || 
-                    bullets[i].y < 0 || bullets[i].y > canvas.height) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-                
-                // Detectar colisiones bala-enemigo
-                for (let j = enemies.length - 1; j >= 0; j--) {
-                    const dx = bullets[i].x - enemies[j].x;
-                    const dy = bullets[i].y - enemies[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < 50) { // Radio de colisión aproximado
-                        enemies[j].health--;
-                        bullets.splice(i, 1);
-                        
-                        if (enemies[j].health <= 0) {
-                            // Crear efecto de explosión de corazones
-                            for (let k = 0; k < 5; k++) {
-                                hearts.push({
-                                    x: enemies[j].x,
-                                    y: enemies[j].y,
-                                    size: 15 + Math.random() * 20,
-                                    speed: 1 + Math.random() * 3,
-                                    opacity: 0.7 + Math.random() * 0.3
-                                });
-                            }
-                            
-                            enemies.splice(j, 1);
-                            score += 10;
-                            document.getElementById('score').textContent = `Puntos: ${score}`;
-                        }
-                        break;
-                    }
-                }
-            }
-            
-            // Mover enemigos hacia el jugador
-            enemies.forEach(enemy => {
-                const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
-                enemy.x += Math.cos(angle) * enemy.speed;
-                enemy.y += Math.sin(angle) * enemy.speed;
-                
-                // Detectar colisión jugador-enemigo
-                const dx = player.x - enemy.x;
-                const dy = player.y - enemy.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 40) {
-                    player.lives--;
-                    document.getElementById('hearts').textContent = '❤️'.repeat(player.lives);
-                    enemies.splice(enemies.indexOf(enemy), 1);
-                    
-                    if (player.lives <= 0) {
-                        gameOver = true;
-                        document.getElementById('message').textContent = "Game Over\nTu amor me venció\nKarla";
-                        document.getElementById('message').style.color = "red";
-                    }
-                }
-            });
-            
-            // Generar nuevos enemigos
-            if (Math.random() < 0.02) {
-                createEnemy();
-            }
-        }
-
+        
+        // Player controls
+        const keys = {
+            ArrowUp: false,
+            ArrowDown: false
+        };
+        
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowUp') keys.ArrowUp = true;
+            if (e.code === 'ArrowDown') keys.ArrowDown = true;
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowUp') keys.ArrowUp = false;
+            if (e.code === 'ArrowDown') keys.ArrowDown = false;
+        });
+        
+        // Touch controls
+        upBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.ArrowUp = true;
+        });
+        
+        upBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.ArrowUp = false;
+        });
+        
+        downBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys.ArrowDown = true;
+        });
+        
+        downBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys.ArrowDown = false;
+        });
+        
+        // Game loop
         function gameLoop() {
-            // Limpiar canvas
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (!gameRunning) return;
             
-            // Dibujar elementos
-            drawStars();
-            drawHearts();
-            
-            if (gameStarted) {
-                drawPlayer();
-                drawBullets();
-                drawEnemies();
-                updateGame();
-            }
+            update();
+            draw();
             
             requestAnimationFrame(gameLoop);
         }
-
-        // ======== CONTROLES ========
-        const keys = {};
-        window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
+        
+        function update() {
+            // Update time
+            currentTime = Math.floor((Date.now() - gameStartTime) / 1000);
+            speedMultiplier = 1 + (currentTime / 30); // Increases speed every 30 seconds
+            updateScore();
             
-            // Iniciar juego al presionar cualquier tecla
-            if (!gameStarted && !gameOver) {
-                gameStarted = true;
-                document.getElementById('message').style.display = 'none';
-            }
-            
-            // Disparar
-            if (e.key === ' ' && gameStarted && !gameOver) {
-                bullets.push({
-                    x: player.x,
-                    y: player.y,
-                    targetX: player.x + (Math.random() * 100 - 50),
-                    targetY: player.y - 100,
-                    speed: 5
-                });
-            }
-            
-            // Reiniciar juego
-            if (e.key === 'r' && gameOver) {
-                resetGame();
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        function handlePlayerInput() {
-            if (keys['ArrowUp'] && player.y > player.height/2) {
+            // Move player
+            if (keys.ArrowUp && player.y > 0) {
                 player.y -= player.speed;
             }
-            if (keys['ArrowDown'] && player.y < canvas.height - player.height/2) {
+            if (keys.ArrowDown && player.y < canvas.height - player.height) {
                 player.y += player.speed;
             }
-            if (keys['ArrowLeft'] && player.x > player.width/2) {
-                player.x -= player.speed;
-            }
-            if (keys['ArrowRight'] && player.x < canvas.width - player.width/2) {
-                player.x += player.speed;
-            }
-        }
-
-        function resetGame() {
-            player.x = canvas.width / 2;
-            player.y = canvas.height / 2;
-            player.lives = 3;
-            bullets.length = 0;
-            enemies.length = 0;
-            score = 0;
-            gameOver = false;
-            gameStarted = false;
             
-            document.getElementById('score').textContent = `Puntos: ${score}`;
-            document.getElementById('hearts').textContent = '❤️❤️❤️';
-            document.getElementById('message').style.display = 'block';
-            document.getElementById('message').textContent = "Viajando por el universo\ncontigo, Karla ❤️";
-            document.getElementById('message').style.color = "#ff69b4";
-        }
-
-        // Actualizar posición del jugador
-        function updatePlayer() {
-            if (gameStarted && !gameOver) {
-                handlePlayerInput();
+            // Spawn enemies
+            const now = Date.now();
+            if (now - lastEnemyTime > enemyInterval / speedMultiplier) {
+                spawnEnemy();
+                lastEnemyTime = now;
             }
-        }
-
-        // Manejar redimensionamiento
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
             
-            if (!gameStarted) {
-                player.x = canvas.width / 2;
-                player.y = canvas.height / 2;
+            // Move enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].x -= enemies[i].speed * speedMultiplier;
+                
+                // Remove enemies off screen
+                if (enemies[i].x < -enemies[i].width) {
+                    enemies.splice(i, 1);
+                }
+                
+                // Check collisions
+                if (collision(player, enemies[i])) {
+                    gameOver();
+                    break;
+                }
             }
-        });
-
-        // Iniciar bucles del juego
-        setInterval(updatePlayer, 16);
-        gameLoop();
+        }
+        
+        function spawnEnemy() {
+            const frase = frasesRomanticas[Math.floor(Math.random() * frasesRomanticas.length)];
+            const fontSize = Math.min(24, Math.max(16, 24 - Math.floor(frase.length / 5)));
+            
+            // Measure text width
+            ctx.font = `${fontSize}px Arial`;
+            const textWidth = ctx.measureText(frase).width;
+            
+            enemies.push({
+                x: canvas.width,
+                y: Math.random() * (canvas.height - 50),
+                width: textWidth + 20,
+                height: fontSize + 10,
+                speed: baseSpeed + Math.random() * 2,
+                color: `hsl(${Math.random() * 60 + 300}, 100%, 70%)`,
+                text: frase,
+                fontSize: fontSize
+            });
+        }
+        
+        function collision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+        
+        function updateScore() {
+            scoreElement.textContent = `Tiempo: ${currentTime}s`;
+            timeElement.textContent = `Velocidad: ${speedMultiplier.toFixed(1)}x`;
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            startScreen.style.display = 'flex';
+            startScreen.innerHTML = `
+                <h1>¡Oh no!</h1>
+                <p>Una frase de amor te atrapó</p>
+                <p>Duración: ${currentTime} segundos</p>
+                <p>Velocidad final: ${speedMultiplier.toFixed(1)}x</p>
+                <button id="startButton">Intentar de nuevo</button>
+            `;
+            document.getElementById('startButton').addEventListener('click', startGame);
+        }
+        
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw player (heart shape)
+            ctx.fillStyle = player.color;
+            drawHeart(player.x, player.y, player.width, player.height);
+            
+            // Draw enemies
+            enemies.forEach(enemy => {
+                // Draw background
+                ctx.fillStyle = enemy.color;
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                
+                // Draw text
+                ctx.fillStyle = '#000';
+                ctx.font = `${enemy.fontSize}px Arial`;
+                ctx.fillText(enemy.text, enemy.x + 10, enemy.y + enemy.fontSize + 5);
+            });
+        }
+        
+        // Function to draw a heart shape
+        function drawHeart(x, y, width, height) {
+            ctx.save();
+            ctx.beginPath();
+            const topCurveHeight = height * 0.3;
+            ctx.moveTo(x, y + topCurveHeight);
+            // Top left curve
+            ctx.bezierCurveTo(
+                x, y, 
+                x - width/2, y, 
+                x - width/2, y + topCurveHeight
+            );
+            // Bottom left curve
+            ctx.bezierCurveTo(
+                x - width/2, y + (height + topCurveHeight)/2, 
+                x, y + (height + topCurveHeight)/2, 
+                x, y + height
+            );
+            // Bottom right curve
+            ctx.bezierCurveTo(
+                x, y + (height + topCurveHeight)/2, 
+                x + width/2, y + (height + topCurveHeight)/2, 
+                x + width/2, y + topCurveHeight
+            );
+            // Top right curve
+            ctx.bezierCurveTo(
+                x + width/2, y, 
+                x, y, 
+                x, y + topCurveHeight
+            );
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
     </script>
 </body>
 </html>
